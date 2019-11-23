@@ -25,11 +25,14 @@ public class Arkanoid extends Applet implements Runnable {
     int[] showbrick;
     int bricksperline;
     final int borderwidth = 5;
-    
+ 
     int batwidth = 34;
-    boolean batwidthChanged=false;
+    boolean batwidthChanged = false;
     int pointWhereItChanged;
-    
+    boolean startlineChanged = false;
+    int startline = 20;
+    long InitialTime = System.currentTimeMillis();
+
     final int ballsize = 5;
     final int batheight = 5;
     final int scoreheight = 20;
@@ -39,9 +42,11 @@ public class Arkanoid extends Applet implements Runnable {
     final int brickspace = 2;
     final int backcol = 0x373434;
     final int numlines = 4;
-    
-    int startline = 28;
 
+    /* alterei DrawBricks(), paint(), ShowIntroScreen(), checkBat(), checkBricks(),
+     GameInit(), initBricks(), keyDown(), CheckBlocksFall(), ;
+        criei GameRestart(), CheckBlocksFall()
+     */
     @Override
     public String getAppletInfo() {
         return ("Arkanoid");
@@ -68,7 +73,14 @@ public class Arkanoid extends Applet implements Runnable {
         }
     }
 
+    
     public void GameInit() {
+        batwidth = 34;
+        batwidthChanged = false;
+        pointWhereItChanged = 0;
+        startline = 20;
+        InitialTime = System.currentTimeMillis();
+
         // posicao do curso
         batpos = (d.width - batwidth) / 2;
         // posicao horizontal da bola
@@ -76,12 +88,35 @@ public class Arkanoid extends Applet implements Runnable {
         // posico vertical da bola
         bally = (d.height - ballsize - scoreheight - 2 * borderwidth);
         player1score = 0;
-        ballsleft = 15;
-        
+        ballsleft = 150;
+
+        dxval = 2;
+        // define se direita ou esquerda
+        if (Math.random() < 0.5) {
+            balldx = dxval;
+        } else {
+            balldx = -dxval;
+        }
+        // define para cima
+        balldy = -dxval;
+        count = screendelay;
+        batdpos = 0;
+        InitBricks();
+    }
+    
+     public void GameRestart() {
         batwidth = 34;
-        batwidthChanged=false;
-        pointWhereItChanged=0;
-        
+        batwidthChanged = false;
+        pointWhereItChanged = 0;
+        startline = 20;
+        InitialTime = System.currentTimeMillis();
+
+        // posicao do curso
+        batpos = (d.width - batwidth) / 2;
+        // posicao horizontal da bola
+        ballx = (d.width - ballsize) / 2;
+        // posico vertical da bola
+        bally = (d.height - ballsize - scoreheight - 2 * borderwidth);
         dxval = 2;
         // define se direita ou esquerda
         if (Math.random() < 0.5) {
@@ -101,12 +136,10 @@ public class Arkanoid extends Applet implements Runnable {
         // ajusta as posicoes LÓGICAS dos blocos
         for (i = 0; i < numlines * bricksperline; i++) {
             if (i < bricksperline) {
-               showbrick[i] = 2;   
-            }   
-            else {
-                showbrick[i] = 1; 
+                showbrick[i] = 2;
+            } else {
+                showbrick[i] = 1;
             }
-                     
         }
     }
 
@@ -157,8 +190,10 @@ public class Arkanoid extends Applet implements Runnable {
         // verifica se o jogo está ativo ou não
         if (ingame) {
             PlayGame();
+        } else if (ballsleft == 0 || startline >= 200) {
+            ShowIntroScreen("GAME OVER !!");
         } else {
-            ShowIntroScreen();
+            ShowIntroScreen("Arkanoid");
         }
         g.drawImage(ii, 0, 0, this);
     }
@@ -167,12 +202,13 @@ public class Arkanoid extends Applet implements Runnable {
         MoveBall();
         CheckBat();
         CheckBricks();
+        CheckBlocksFall();
         DrawPlayField();
         DrawBricks();
         ShowScore();
     }
 
-    public void ShowIntroScreen() {
+    public void ShowIntroScreen(String txt) {
         String s;
 
         MoveBall();
@@ -186,7 +222,7 @@ public class Arkanoid extends Applet implements Runnable {
         goff.setColor(new Color(96, 128, 255));
         // desenha texto introdutório
         if (showtitle) {
-            s = "Arkanoid";
+            s = txt;
             goff.drawString(s, (d.width - fmlarge.stringWidth(s)) / 2, (d.height - scoreheight - borderwidth) / 2 - 20);
         } else {
             goff.setFont(smallfont);
@@ -221,22 +257,21 @@ public class Arkanoid extends Applet implements Runnable {
                     // assume que ainda existe pelo menos um tijolo
                     nobricks = false;
                     // desenha o tijolo no buffer de video
-                    if (j==0) {
+                    if (j == 0) {
                         if (showbrick[j * bricksperline + i] == 1) {
-                           goff.setColor(new Color(0x919191));
+                            goff.setColor(new Color(0x919191));
                             goff.fillRect(borderwidth + i * (brickwidth + brickspace), startline + j * (brickheight + brickspace),
-                            brickwidth, brickheight);  
-                         }else {
+                                    brickwidth, brickheight);
+                        } else {
                             goff.setColor(new Color(0xc0c0c0));
                             goff.fillRect(borderwidth + i * (brickwidth + brickspace), startline + j * (brickheight + brickspace),
-                            brickwidth, brickheight);
+                                    brickwidth, brickheight);
                         }
+                    } else {
+                        goff.setColor(new Color(255, j * colordelta, 255 - j * colordelta));
+                        goff.fillRect(borderwidth + i * (brickwidth + brickspace), startline + j * (brickheight + brickspace),
+                                brickwidth, brickheight);
                     }
-                    else {
-                    goff.setColor(new Color(255, j * colordelta, 255 - j * colordelta));
-                    goff.fillRect(borderwidth + i * (brickwidth + brickspace), startline + j * (brickheight + brickspace),
-                            brickwidth, brickheight);
-                   }
                 }
             }
         }
@@ -336,21 +371,19 @@ public class Arkanoid extends Applet implements Runnable {
     public void CheckBat() {
         // move cursor
         batpos += batdpos;
-        
-        if (player1score - pointWhereItChanged >= 10) {
+
+        if (player1score - pointWhereItChanged == 10) {
+
             batwidthChanged = false;
-            startline += 1;
-            if (startline > 30) ingame = false;
-            System.out.println(startline);
-        }
-        
-        if (batwidthChanged == false && batwidth >= 20 ) {
+
+        } else if (batwidthChanged == false && batwidth >= 20) {
+
             batwidth -= 2;
             batwidthChanged = true;
             pointWhereItChanged = player1score;
-            System.out.println(batwidth);
+            //System.out.println(batwidth);
         }
-        
+
         // impede que o cursor passe pelas bordas
         if (batpos < borderwidth) {
             batpos = borderwidth;
@@ -364,6 +397,44 @@ public class Arkanoid extends Applet implements Runnable {
             bally = d.height - scoreheight - ballsize - borderwidth * 2;
             balldy = -dxval;
             balldx = CheckBatBounce(balldx, ballx - batpos);
+        }
+    }
+
+    public void CheckBlocksFall() {
+        int i, j, altura=0;
+        boolean[] háBlocosnaLinha = new boolean[numlines];
+        for (j = 0; j < numlines; j++) {
+            for (i = 0; i < bricksperline; i++) {
+                if (showbrick[j * bricksperline + i] > 0) {
+                    háBlocosnaLinha[j] = true;
+                    break;
+                }
+            }
+        }
+        
+        if (háBlocosnaLinha[3]) { //80
+            altura = 85;
+        }else if (háBlocosnaLinha[2]) { //60
+            altura = 70;
+        }else if (háBlocosnaLinha[1]) { //40
+            altura = 65;
+        }else if (háBlocosnaLinha[0]) { //35
+            altura = 55;
+        } else {
+            GameRestart();
+        }
+        
+        int alturaDaUltimaLinha = (d.height - ballsize - scoreheight) - altura;
+        System.out.println(alturaDaUltimaLinha);
+        
+        if (((System.currentTimeMillis() - InitialTime) / 1000) == 5) {
+            InitialTime = System.currentTimeMillis();
+            
+            startline += 4;
+        }
+        if (startline >= alturaDaUltimaLinha) {
+  
+            ingame = false;
         }
     }
 
@@ -404,7 +475,7 @@ public class Arkanoid extends Applet implements Runnable {
     // verifica de a bola bateu eu algum tijolo
     public void CheckBricks() {
         int i, j, x, y;
-    
+
         // declara uma variavel auxiliar e atribui a direcao horizontal da bola
         int xspeed = balldx;
         // mantem a direcao sempre positiva (esquerda para direita)
@@ -431,13 +502,13 @@ public class Arkanoid extends Applet implements Runnable {
                     if (bally >= (y - ballsize) && bally < (y + brickheight)
                             && ballx >= (x - ballsize) && ballx < (x + brickwidth)) {
                         // se bateu, exclui o tijolo do vetor de tijolos       
-                            showbrick[j * bricksperline + i] -= 1;                                         
+                        showbrick[j * bricksperline + i] -= 1;
                         // se "em jogo" incrementa o placar
                         //(quanto mais alto o tijolo maior o incremento)
                         if (ingame && showbrick[j * bricksperline + i] == 0) {
                             player1score += (numlines - j);
-                        }      
-                        
+                        }
+
                         // se bateu de lado esquerdo
                         // ou se bateu em baixo na quina direita
                         if (ballx >= (x - ballsize) && ballx <= (x - ballsize + 3)) {
@@ -471,7 +542,7 @@ public class Arkanoid extends Applet implements Runnable {
             starttime = System.currentTimeMillis();
             try {
                 paint(g);
-                starttime += 20;
+                starttime += 17;
                 // define pausa de acordo com a velocidade da máquina
                 Thread.sleep(Math.max(0, starttime - System.currentTimeMillis()));
             } catch (InterruptedException e) {
