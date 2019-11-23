@@ -25,7 +25,11 @@ public class Arkanoid extends Applet implements Runnable {
     int[] showbrick;
     int bricksperline;
     final int borderwidth = 5;
-    final int batwidth = 30;
+    
+    int batwidth = 34;
+    boolean batwidthChanged=false;
+    int pointWhereItChanged;
+    
     final int ballsize = 5;
     final int batheight = 5;
     final int scoreheight = 20;
@@ -35,7 +39,8 @@ public class Arkanoid extends Applet implements Runnable {
     final int brickspace = 2;
     final int backcol = 0x373434;
     final int numlines = 4;
-    final int startline = 28;
+    
+    int startline = 28;
 
     @Override
     public String getAppletInfo() {
@@ -72,6 +77,11 @@ public class Arkanoid extends Applet implements Runnable {
         bally = (d.height - ballsize - scoreheight - 2 * borderwidth);
         player1score = 0;
         ballsleft = 15;
+        
+        batwidth = 34;
+        batwidthChanged=false;
+        pointWhereItChanged=0;
+        
         dxval = 2;
         // define se direita ou esquerda
         if (Math.random() < 0.5) {
@@ -326,7 +336,21 @@ public class Arkanoid extends Applet implements Runnable {
     public void CheckBat() {
         // move cursor
         batpos += batdpos;
-
+        
+        if (player1score - pointWhereItChanged >= 10) {
+            batwidthChanged = false;
+            startline += 1;
+            if (startline > 30) ingame = false;
+            System.out.println(startline);
+        }
+        
+        if (batwidthChanged == false && batwidth >= 20 ) {
+            batwidth -= 2;
+            batwidthChanged = true;
+            pointWhereItChanged = player1score;
+            System.out.println(batwidth);
+        }
+        
         // impede que o cursor passe pelas bordas
         if (batpos < borderwidth) {
             batpos = borderwidth;
