@@ -22,20 +22,20 @@ public class Arkanoid extends Applet implements Runnable {
     int ballsleft;
     int count;
     boolean showtitle = true;
-    boolean[] showbrick;
+    int[] showbrick;
     int bricksperline;
     final int borderwidth = 5;
     final int batwidth = 30;
-    final int ballsize = 15;
+    final int ballsize = 5;
     final int batheight = 5;
     final int scoreheight = 20;
     final int screendelay = 300;
     final int brickwidth = 15;
     final int brickheight = 8;
     final int brickspace = 2;
-    final int backcol = 0x102040;
+    final int backcol = 0x373434;
     final int numlines = 4;
-    final int startline = 32;
+    final int startline = 28;
 
     @Override
     public String getAppletInfo() {
@@ -54,7 +54,7 @@ public class Arkanoid extends Applet implements Runnable {
         fmsmall = g.getFontMetrics();
         g.setFont(largefont);
         fmlarge = g.getFontMetrics();
-        showbrick = new boolean[bricksperline * numlines];
+        showbrick = new int[bricksperline * numlines];
         GameInit();
         if (thethread == null) {
             thethread = new Thread(this);
@@ -71,7 +71,7 @@ public class Arkanoid extends Applet implements Runnable {
         // posico vertical da bola
         bally = (d.height - ballsize - scoreheight - 2 * borderwidth);
         player1score = 0;
-        ballsleft =4;
+        ballsleft = 15;
         dxval = 2;
         // define se direita ou esquerda
         if (Math.random() < 0.5) {
@@ -90,7 +90,13 @@ public class Arkanoid extends Applet implements Runnable {
         int i;
         // ajusta as posicoes LÓGICAS dos blocos
         for (i = 0; i < numlines * bricksperline; i++) {
-            showbrick[i] = true;
+            if (i < bricksperline) {
+               showbrick[i] = 2;   
+            }   
+            else {
+                showbrick[i] = 1; 
+            }
+                     
         }
     }
 
@@ -98,10 +104,10 @@ public class Arkanoid extends Applet implements Runnable {
     public boolean keyDown(Event e, int key) {
         if (ingame) {
             if (key == Event.LEFT) {
-                batdpos = -2;
+                batdpos = -5;
             }
             if (key == Event.RIGHT) {
-                batdpos = 2;
+                batdpos = 5;
             }
             if (key == Event.ESCAPE) {
                 ingame = false;
@@ -117,7 +123,6 @@ public class Arkanoid extends Applet implements Runnable {
 
     @Override
     public boolean keyUp(Event e, int key) {
-        System.out.println("Key: " + key);
         if (key == Event.LEFT || key == Event.RIGHT) {
             batdpos = 0;
         }
@@ -202,13 +207,26 @@ public class Arkanoid extends Applet implements Runnable {
             // desenha colunas
             for (i = 0; i < bricksperline; i++) {
                 // verifica condicao logica do tijolo
-                if (showbrick[j * bricksperline + i]) {
+                if (showbrick[j * bricksperline + i] > 0) {
                     // assume que ainda existe pelo menos um tijolo
                     nobricks = false;
                     // desenha o tijolo no buffer de video
+                    if (j==0) {
+                        if (showbrick[j * bricksperline + i] == 1) {
+                           goff.setColor(new Color(0x919191));
+                            goff.fillRect(borderwidth + i * (brickwidth + brickspace), startline + j * (brickheight + brickspace),
+                            brickwidth, brickheight);  
+                         }else {
+                            goff.setColor(new Color(0xc0c0c0));
+                            goff.fillRect(borderwidth + i * (brickwidth + brickspace), startline + j * (brickheight + brickspace),
+                            brickwidth, brickheight);
+                        }
+                    }
+                    else {
                     goff.setColor(new Color(255, j * colordelta, 255 - j * colordelta));
                     goff.fillRect(borderwidth + i * (brickwidth + brickspace), startline + j * (brickheight + brickspace),
                             brickwidth, brickheight);
+                   }
                 }
             }
         }
@@ -362,6 +380,7 @@ public class Arkanoid extends Applet implements Runnable {
     // verifica de a bola bateu eu algum tijolo
     public void CheckBricks() {
         int i, j, x, y;
+    
         // declara uma variavel auxiliar e atribui a direcao horizontal da bola
         int xspeed = balldx;
         // mantem a direcao sempre positiva (esquerda para direita)
@@ -378,7 +397,7 @@ public class Arkanoid extends Applet implements Runnable {
         for (j = 0; j < numlines; j++) {
             for (i = 0; i < bricksperline; i++) {
                 // se o tijolo existe, verifica se a bola bateu nele
-                if (showbrick[j * bricksperline + i]) {
+                if (showbrick[j * bricksperline + i] > 0) {
                     // define a posicao vertical do tijolo
                     y = startline + j * (brickspace + brickheight);
                     // define a posicao horizontal do tijolo
@@ -387,13 +406,14 @@ public class Arkanoid extends Applet implements Runnable {
                     // (em cima, em baixo, no lado esquerdo ou no lado direito
                     if (bally >= (y - ballsize) && bally < (y + brickheight)
                             && ballx >= (x - ballsize) && ballx < (x + brickwidth)) {
-                        // se bateu, exclui o tijolo do vetor de tijolos
-                        showbrick[j * bricksperline + i] = false;
+                        // se bateu, exclui o tijolo do vetor de tijolos       
+                            showbrick[j * bricksperline + i] -= 1;                                         
                         // se "em jogo" incrementa o placar
                         //(quanto mais alto o tijolo maior o incremento)
-                        if (ingame) {
+                        if (ingame && showbrick[j * bricksperline + i] == 0) {
                             player1score += (numlines - j);
-                        }
+                        }      
+                        
                         // se bateu de lado esquerdo
                         // ou se bateu em baixo na quina direita
                         if (ballx >= (x - ballsize) && ballx <= (x - ballsize + 3)) {
