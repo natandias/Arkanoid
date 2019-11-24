@@ -31,7 +31,8 @@ public class Arkanoid extends Applet implements Runnable {
     int pointWhereItChanged;
     boolean startlineChanged = false;
     int startline = 20;
-    long InitialTime = System.currentTimeMillis();
+    long InitialTimeCheckBat = System.currentTimeMillis();
+    long InitialTimeCheckBlocksFall = System.currentTimeMillis();
 
     final int ballsize = 5;
     final int batheight = 5;
@@ -79,7 +80,8 @@ public class Arkanoid extends Applet implements Runnable {
         batwidthChanged = false;
         pointWhereItChanged = 0;
         startline = 20;
-        InitialTime = System.currentTimeMillis();
+        InitialTimeCheckBat = System.currentTimeMillis();
+        InitialTimeCheckBlocksFall = System.currentTimeMillis();
 
         // posicao do curso
         batpos = (d.width - batwidth) / 2;
@@ -109,7 +111,8 @@ public class Arkanoid extends Applet implements Runnable {
         batwidthChanged = false;
         pointWhereItChanged = 0;
         startline = 20;
-        InitialTime = System.currentTimeMillis();
+        InitialTimeCheckBat = System.currentTimeMillis();
+        InitialTimeCheckBlocksFall = System.currentTimeMillis();
 
         // posicao do curso
         batpos = (d.width - batwidth) / 2;
@@ -372,16 +375,11 @@ public class Arkanoid extends Applet implements Runnable {
         // move cursor
         batpos += batdpos;
 
-        if (player1score - pointWhereItChanged == 10) {
-
-            batwidthChanged = false;
-
-        } else if (batwidthChanged == false && batwidth >= 20) {
-
+        if (((System.currentTimeMillis() - InitialTimeCheckBat) / 1000) == 5 && batwidth >= 24) {
+            InitialTimeCheckBat = System.currentTimeMillis();
+            
             batwidth -= 2;
-            batwidthChanged = true;
-            pointWhereItChanged = player1score;
-            //System.out.println(batwidth);
+            System.out.println("batwidht: " + batwidth);
         }
 
         // impede que o cursor passe pelas bordas
@@ -425,12 +423,12 @@ public class Arkanoid extends Applet implements Runnable {
         }
         
         int alturaDaUltimaLinha = (d.height - ballsize - scoreheight) - altura;
-        System.out.println(alturaDaUltimaLinha);
         
-        if (((System.currentTimeMillis() - InitialTime) / 1000) == 5) {
-            InitialTime = System.currentTimeMillis();
+        if (((System.currentTimeMillis() - InitialTimeCheckBlocksFall) / 1000) == 5) {
+            InitialTimeCheckBlocksFall = System.currentTimeMillis();
             
             startline += 4;
+            System.out.println("startline: " + startline);
         }
         if (startline >= alturaDaUltimaLinha) {
   
