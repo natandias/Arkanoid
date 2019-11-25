@@ -33,6 +33,7 @@ public class Arkanoid extends Applet implements Runnable {
     int startline = 20;
     long InitialTimeCheckBat = System.currentTimeMillis();
     long InitialTimeCheckBlocksFall = System.currentTimeMillis();
+    boolean gameOver = false;
 
     final int ballsize = 5;
     final int batheight = 5;
@@ -113,6 +114,7 @@ public class Arkanoid extends Applet implements Runnable {
         startline = 20;
         InitialTimeCheckBat = System.currentTimeMillis();
         InitialTimeCheckBlocksFall = System.currentTimeMillis();
+        gameOver = false;
 
         // posicao do curso
         batpos = (d.width - batwidth) / 2;
@@ -193,10 +195,10 @@ public class Arkanoid extends Applet implements Runnable {
         // verifica se o jogo está ativo ou não
         if (ingame) {
             PlayGame();
-        } else if (ballsleft == 0 || startline >= 200) {
+        } else if (gameOver == true) {
             ShowIntroScreen("GAME OVER !!");
         } else {
-            ShowIntroScreen("Arkanoid");
+            ShowIntroScreen("ARKANOID");
         }
         g.drawImage(ii, 0, 0, this);
     }
@@ -335,6 +337,7 @@ public class Arkanoid extends Applet implements Runnable {
                 ballsleft--;
                 // acaba jogo
                 if (ballsleft <= 0) {
+                    gameOver = true;
                     ingame = false;
                 }
             }
@@ -375,7 +378,7 @@ public class Arkanoid extends Applet implements Runnable {
         // move cursor
         batpos += batdpos;
 
-        if (((System.currentTimeMillis() - InitialTimeCheckBat) / 1000) == 5 && batwidth >= 24) {
+        if (((System.currentTimeMillis() - InitialTimeCheckBat) / 1000) == 3 && batwidth >= 24) {
             InitialTimeCheckBat = System.currentTimeMillis();
             
             batwidth -= 2;
@@ -424,15 +427,17 @@ public class Arkanoid extends Applet implements Runnable {
         
         int alturaDaUltimaLinha = (d.height - ballsize - scoreheight) - altura;
         
-        if (((System.currentTimeMillis() - InitialTimeCheckBlocksFall) / 1000) == 5) {
+        if (((System.currentTimeMillis() - InitialTimeCheckBlocksFall) / 1000) == 3) {
             InitialTimeCheckBlocksFall = System.currentTimeMillis();
             
             startline += 4;
             System.out.println("startline: " + startline);
         }
         if (startline >= alturaDaUltimaLinha) {
-  
+            
+            gameOver = true;
             ingame = false;
+            
         }
     }
 
