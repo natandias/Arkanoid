@@ -414,7 +414,7 @@ public class Arkanoid extends Applet implements Runnable {
         }
         
         if (háBlocosnaLinha[3]) { //80
-            altura = 85;
+            altura = 75;
         }else if (háBlocosnaLinha[2]) { //60
             altura = 70;
         }else if (háBlocosnaLinha[1]) { //40
