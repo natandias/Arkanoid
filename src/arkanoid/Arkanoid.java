@@ -26,7 +26,7 @@ public class Arkanoid extends Applet implements Runnable {
     int bricksperline;
     final int borderwidth = 5;
  
-    int batwidth = 34;
+    int batwidth = 70;
     boolean batwidthChanged = false;
     int pointWhereItChanged;
     boolean startlineChanged = false;
@@ -35,12 +35,12 @@ public class Arkanoid extends Applet implements Runnable {
     long InitialTimeCheckBlocksFall = System.currentTimeMillis();
     boolean gameOver = false;
 
-    final int ballsize = 5;
+    final int ballsize = 7;
     final int batheight = 5;
     final int scoreheight = 20;
     final int screendelay = 300;
-    final int brickwidth = 15;
-    final int brickheight = 8;
+    final int brickwidth = 25;
+    final int brickheight = 15;
     final int brickspace = 2;
     final int backcol = 0x373434;
     final int numlines = 4;
@@ -56,6 +56,7 @@ public class Arkanoid extends Applet implements Runnable {
 
     @Override
     public void start() {
+        resize(760, 480);
         Graphics g;
         d = size();
         setBackground(new Color(backcol));
@@ -77,7 +78,7 @@ public class Arkanoid extends Applet implements Runnable {
 
     
     public void GameInit() {
-        batwidth = 34;
+        batwidth = 70;
         batwidthChanged = false;
         pointWhereItChanged = 0;
         startline = 20;
@@ -108,7 +109,7 @@ public class Arkanoid extends Applet implements Runnable {
     }
     
      public void GameRestart() {
-        batwidth = 34;
+        batwidth = 70;
         batwidthChanged = false;
         pointWhereItChanged = 0;
         startline = 20;
@@ -152,10 +153,10 @@ public class Arkanoid extends Applet implements Runnable {
     public boolean keyDown(Event e, int key) {
         if (ingame) {
             if (key == Event.LEFT) {
-                batdpos = -5;
+                batdpos = -6;
             }
             if (key == Event.RIGHT) {
-                batdpos = 5;
+                batdpos = 6;
             }
             if (key == Event.ESCAPE) {
                 ingame = false;
@@ -303,6 +304,10 @@ public class Arkanoid extends Applet implements Runnable {
         goff.fillRect(batpos, d.height - 2 * borderwidth - scoreheight, batwidth, batheight); // bat
         // desenha a bola
         goff.fillRect(ballx, bally, ballsize, ballsize);
+        // desenha linha altura de game over
+        goff.setColor(Color.red);
+        goff.fillRect(0, 370, d.width, 1);
+        
     }
 
     // desenha o placar e status
@@ -378,7 +383,7 @@ public class Arkanoid extends Applet implements Runnable {
         // move cursor
         batpos += batdpos;
 
-        if (((System.currentTimeMillis() - InitialTimeCheckBat) / 1000) == 3 && batwidth >= 24) {
+        if (((System.currentTimeMillis() - InitialTimeCheckBat) / 1000) == 5 && batwidth >= 60) {
             InitialTimeCheckBat = System.currentTimeMillis();
             
             batwidth -= 2;
@@ -414,23 +419,23 @@ public class Arkanoid extends Applet implements Runnable {
         }
         
         if (háBlocosnaLinha[3]) { //80
-            altura = 75;
+            altura = 77;
         }else if (háBlocosnaLinha[2]) { //60
-            altura = 70;
+            altura = 77 - brickheight;
         }else if (háBlocosnaLinha[1]) { //40
-            altura = 65;
+            altura = 77 - brickheight*2;
         }else if (háBlocosnaLinha[0]) { //35
-            altura = 55;
+            altura = 77 - brickheight*3;
         } else {
             GameRestart();
         }
         
-        int alturaDaUltimaLinha = (d.height - ballsize - scoreheight) - altura;
+        int alturaDaUltimaLinha = (d.height-85 - ballsize - scoreheight) - altura;
         
-        if (((System.currentTimeMillis() - InitialTimeCheckBlocksFall) / 1000) == 3) {
+        if (((System.currentTimeMillis() - InitialTimeCheckBlocksFall) / 1000) == 2) {
             InitialTimeCheckBlocksFall = System.currentTimeMillis();
             
-            startline += 4;
+            startline += 15;
             System.out.println("startline: " + startline);
         }
         if (startline >= alturaDaUltimaLinha) {
@@ -545,7 +550,7 @@ public class Arkanoid extends Applet implements Runnable {
             starttime = System.currentTimeMillis();
             try {
                 paint(g);
-                starttime += 17;
+                starttime += 7;
                 // define pausa de acordo com a velocidade da máquina
                 Thread.sleep(Math.max(0, starttime - System.currentTimeMillis()));
             } catch (InterruptedException e) {
