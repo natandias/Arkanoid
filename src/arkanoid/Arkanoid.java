@@ -39,7 +39,7 @@ public class Arkanoid extends Applet implements Runnable {
     final int batheight = 5;
     final int scoreheight = 20;
     final int screendelay = 300;
-    final int brickwidth = 25;
+    final int brickwidth = 22;
     final int brickheight = 15;
     final int brickspace = 2;
     final int backcol = 0x373434;
